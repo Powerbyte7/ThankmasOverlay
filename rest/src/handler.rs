@@ -1,4 +1,4 @@
-use crate::{ws, Client, Clients, Result, TiltifyState};
+use crate::{ws, Client, Clients, Result};
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 use warp::{http::StatusCode, reply::json, ws::Message, Reply};
@@ -22,27 +22,21 @@ pub struct Event {
     message: String,
 }
 
-pub async fn handle_webhook(body: Campaign, state: TiltifyState, clients: Clients) -> Result<impl Reply> {
+pub async fn handle_webhook(body: Campaign, clients: Clients) -> Result<impl Reply> {
 
-    let amount_raised = body.data.amount_raised.unwrap().value;
+    let updated_campaign = serde_json::to_string(&body).unwrap();
+
+    let amount_raised = body.data.amount_raised.clone().unwrap().value;
     
     {
-        let old_amount_raised = state.read().await;
-
-        println!("Old raised amount: {}", *old_amount_raised);
-        println!("New raised amount: {}", amount_raised);
+        println!("New total: ${}", amount_raised);
 
         // Push webhook data to clients
         let _ = publish_handler(Event {
             topic: "donation".to_string(),
             user_id: None,
-            message: amount_raised.clone(),
+            message: updated_campaign.clone(),
         }, clients).await;
-    }
-    
-    {
-        let mut state_pointer = state.write().await;
-        *state_pointer = amount_raised.clone();
     }
     
     Ok::<_, warp::Rejection>(warp::reply())

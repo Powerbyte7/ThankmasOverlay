@@ -47,7 +47,11 @@ func _process(delta):
 			while socket.get_available_packet_count():
 				var packet = socket.get_packet()
 				var text = packet.get_string_from_utf8()
-				$ProgressBar.update(float(text),float(10000))
+				var json = JSON.parse_string(text)
+				var raised = json["data"]["amount_raised"]["value"]
+				var goal = json["data"]["goal"]["value"]
+				
+				$ProgressBar.update(float(raised),float(goal))
 				print("Packet: ", text)
 		elif state == WebSocketPeer.STATE_CLOSING:
 			# Keep polling to achieve proper close.

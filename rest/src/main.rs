@@ -2,8 +2,7 @@ use std::collections::HashMap;
 use std::convert::Infallible;
 use std::sync::Arc;
 use tokio::sync::{mpsc, RwLock};
-use warp::{ws::Message, Filter, Rejection, path, body::json};
-use tiltify::Campaign;
+use warp::{ws::Message, Filter, Rejection, path};
 use reqwest::Method;
 
 mod handler;
@@ -11,7 +10,6 @@ mod ws;
 
 type Result<T> = std::result::Result<T, Rejection>;
 type Clients = Arc<RwLock<HashMap<String, Client>>>;
-type TiltifyState = Arc<RwLock<String>>;
 
 #[derive(Debug, Clone)]
 pub struct Client {
@@ -23,12 +21,6 @@ pub struct Client {
 #[tokio::main]
 async fn main() {
     let clients: Clients = Arc::new(RwLock::new(HashMap::new()));
-    let tiltify_state: TiltifyState = Arc::new(RwLock::new(String::from("Test")));
-
-    let cors = warp::cors()
-        .allow_any_origin()
-        .allow_headers(vec!["Access-Control-Allow-Origin", "Origin", "Accept", "X-Requested-With", "Content-Type"])
-        .allow_methods(&[Method::GET, Method::POST]);
 
     let static_assets = warp::path("overlay").and(warp::fs::dir("overlay"))
     .map(|reply| {
@@ -45,8 +37,7 @@ async fn main() {
 
     let webhook_route = path!("webhook")
         .and(warp::post())
-        .and(json::<Campaign>())
-        .and(with_state(tiltify_state.clone()))
+        .and(warp::body::json())
         .and(with_clients(clients.clone()))
         .and_then(handler::handle_webhook);
 
@@ -73,6 +64,11 @@ async fn main() {
         .and(with_clients(clients.clone()))
         .and_then(handler::ws_handler);
 
+    let cors = warp::cors()
+        .allow_any_origin()
+        .allow_headers(vec!["Access-Control-Allow-Origin", "Origin", "Accept", "X-Requested-With", "Content-Type"])
+        .allow_methods(&[Method::GET, Method::POST]);
+
     let routes = health_route
         .or(static_assets)
         .or(webhook_route)
@@ -88,9 +84,5 @@ async fn main() {
 
 fn with_clients(clients: Clients) -> impl Filter<Extract = (Clients,), Error = Infallible> + Clone {
     warp::any().map(move || clients.clone())
-}
-
-fn with_state(state: TiltifyState) -> impl Filter<Extract = (TiltifyState,), Error = Infallible> + Clone {
-    warp::any().map(move || state.clone())
 }
 
