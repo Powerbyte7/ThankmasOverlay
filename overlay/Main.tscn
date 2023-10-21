@@ -85,6 +85,7 @@ script = ExtResource("3_fbh13")
 [node name="HTTPRequest" type="HTTPRequest" parent="Donations"]
 
 [node name="LineEdit" type="LineEdit" parent="."]
+visible = false
 layout_mode = 1
 anchors_preset = 2
 anchor_top = 1.0
