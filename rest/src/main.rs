@@ -20,6 +20,8 @@ pub struct Client {
 
 #[tokio::main]
 async fn main() {
+    println!("Sup!");
+
     let clients: Clients = Arc::new(RwLock::new(HashMap::new()));
 
     let static_assets = warp::path("overlay").and(warp::fs::dir("overlay"))
@@ -78,7 +80,7 @@ async fn main() {
         .with(&cors);
 
     warp::serve(routes)
-        .run(([0, 0, 0, 0], 1338))
+        .run(([0, 0, 0, 0], 80))
         .await;
 }
 

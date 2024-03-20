@@ -8,13 +8,19 @@ func _ready():
 	
 func _input(event):
 	if event.is_action_pressed("ui_down"):
-		print("DOWN")
-		var tween = create_tween().set_trans(Tween.TRANS_CUBIC)
-		tween.tween_property(self, "position", Vector2(36,34), 1.8)
+		show_bar()	
 	elif event.is_action_pressed("ui_up"):
-		print("UP")
-		var tween = create_tween().set_trans(Tween.TRANS_CUBIC)
-		tween.tween_property(self, "position", Vector2(36,-182), 1.8)
+		hide_bar()
+
+func show_bar():
+	print("SHOW")
+	var tween = create_tween().set_trans(Tween.TRANS_CUBIC)
+	tween.tween_property(self, "position", Vector2(36,34), 1.8)
+		
+func hide_bar():
+	print("HIDE")
+	var tween = create_tween().set_trans(Tween.TRANS_CUBIC)
+	tween.tween_property(self, "position", Vector2(36,-182), 1.8)
 	
 func start():
 	
@@ -30,9 +36,7 @@ func _on_request_completed(result, response_code, headers, body):
 
 func update(raised,goal):
 	self.max_value = float(goal)
-	$ProgressText.update(float(raised))
-	
-	
+	$ProgressText.update(int(raised),int(goal))
 	
 	var tween = get_tree().create_tween().set_trans(Tween.TRANS_CUBIC)
 	tween.tween_property(self, "value", float(raised), 0.5)

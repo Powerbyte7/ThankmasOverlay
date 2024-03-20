@@ -67,7 +67,7 @@ pub async fn register_handler(body: RegisterRequest, clients: Clients) -> Result
 
     register_client(uuid.clone(), user_id, clients).await;
     Ok(json(&RegisterResponse {
-        url: format!("ws://192.168.1.82:1338/ws/{}", uuid),
+        url: format!("wss://thankmasoverlay.azurewebsites.net/ws/{}", uuid),
     }))
 }
 

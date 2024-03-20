@@ -10,5 +10,5 @@ func _ready():
 func _process(delta):
 	pass
 
-func update(value):
-	self.text = "Total money raised: $" + str(value)
+func update(raised, goal):
+	self.text = "$" + str(raised) + " / $" + str(goal)

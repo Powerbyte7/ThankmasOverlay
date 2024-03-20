@@ -1,0 +1,81 @@
+{
+    "data": {
+      "amount_raised": {
+        "currency": "USD",
+        "value": "6663.55"
+      },
+      "avatar": {
+        "alt": "alt",
+        "height": 64,
+        "src": "https://assets.tiltify.com/assets/default-cause-avatar.png",
+        "width": 64
+      },
+      "cause_id": "10dfb7e0-3846-4882-96c8-2e952b94181f",
+      "description": "Placeat voluptate nulla odio.",
+      "donate_url": "https://donate.tiltify.test/@torchic/fundraising-for-black-city",
+      "fundraising_event_id": "1ac4e9af-dfe0-49e1-959e-de9342dbc79d",
+      "goal": {
+        "currency": "USD",
+        "value": "20000.00"
+      },
+      "has_schedule": false,
+      "id": "66ba2993-48a3-40b0-bbe4-53c7be7b23dc",
+      "inserted_at": "2023-10-17T15:34:53.925588Z",
+      "legacy_id": 0,
+      "livestream": null,
+      "name": "Fundraising for Black City!",
+      "original_goal": {
+        "currency": "USD",
+        "value": "100.00"
+      },
+      "published_at": "2023-10-28T23:41:19.925604Z",
+      "retired_at": null,
+      "slug": "fundraising-for-black-city",
+      "status": "published",
+      "supporting_type": "none",
+      "total_amount_raised": {
+        "currency": "USD",
+        "value": "6663.55"
+      },
+      "updated_at": "2023-10-30T17:48:41.925611Z",
+      "url": "https://tiltify.test/@torchic/fundraising-for-black-city",
+      "user": {
+        "avatar": {
+          "alt": "alt",
+          "height": 200,
+          "src": "https://assets.tiltify.com/assets/default-avatar.png",
+          "width": 200
+        },
+        "description": "Enim qui sequi ullam eos quo ut aliquid.",
+        "id": "7ec25c64-c23d-439c-a0b1-7532205178d5",
+        "legacy_id": 0,
+        "slug": "torchic",
+        "social": {
+          "discord": null,
+          "facebook": null,
+          "instagram": null,
+          "snapchat": null,
+          "tiktok": null,
+          "twitch": null,
+          "twitter": null,
+          "website": null,
+          "youtube": null
+        },
+        "total_amount_raised": {
+          "currency": "USD",
+          "value": "6663.55"
+        },
+        "url": "https://tiltify.test/@torchic",
+        "username": "Torchic"
+      },
+      "user_id": "7ec25c64-c23d-439c-a0b1-7532205178d5"
+    },
+    "meta": {
+      "attempted_at": "2023-10-31T17:48:42.054139Z",
+      "event_type": "public:direct:fact_updated",
+      "generated_at": "2023-10-31T17:48:41.925635Z",
+      "id": "3e028d3c-2f79-4398-9d27-c979ebb05191",
+      "subscription_source_id": "00000000-0000-0000-0000-000000000000",
+      "subscription_source_type": "test"
+    }
+  }
