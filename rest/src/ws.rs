@@ -6,7 +6,6 @@ use tokio::sync::mpsc;
 use tokio_stream::wrappers::UnboundedReceiverStream;
 use warp::ws::{Message, WebSocket};
 
-
 #[derive(Deserialize, Debug)]
 pub struct TopicsRequest {
     topics: Vec<String>,
@@ -45,6 +44,7 @@ pub async fn client_connection(ws: WebSocket, id: String, clients: Clients, mut 
 
 async fn client_msg(id: &str, msg: Message, clients: &Clients) {
     println!("received message from {}: {:?}", id, msg);
+
     let message = match msg.to_str() {
         Ok(v) => v,
         Err(_) => return,

@@ -1,9 +1,11 @@
+use reqwest::Method;
 use std::collections::HashMap;
 use std::convert::Infallible;
 use std::sync::Arc;
 use tokio::sync::{mpsc, RwLock};
-use warp::{ws::Message, Filter, Rejection, path};
-use reqwest::Method;
+use warp::filters::ws::Message;
+use warp::reject::Rejection;
+use warp::Filter;
 
 mod handler;
 mod ws;
@@ -24,20 +26,17 @@ async fn main() {
 
     let clients: Clients = Arc::new(RwLock::new(HashMap::new()));
 
-    let static_assets = warp::path("overlay").and(warp::fs::dir("overlay"))
-    .map(|reply| {
-        warp::reply::with_header(reply, "Access-Control-Allow-Origin", "*")
-    })
-    .map(|reply| {
-        warp::reply::with_header(reply, "Cross-Origin-Embedder-Policy", "require-corp")
-    })
-    .map(|reply| {
-        warp::reply::with_header(reply, "Cross-Origin-Opener-Policy", "same-origin")
-    });
+    let static_assets = warp::path("overlay")
+        .and(warp::fs::dir("overlay"))
+        .map(|reply| warp::reply::with_header(reply, "Access-Control-Allow-Origin", "*"))
+        .map(|reply| {
+            warp::reply::with_header(reply, "Cross-Origin-Embedder-Policy", "require-corp")
+        })
+        .map(|reply| warp::reply::with_header(reply, "Cross-Origin-Opener-Policy", "same-origin"));
 
     let health_route = warp::path!("health").and_then(handler::health_handler);
 
-    let webhook_route = path!("webhook")
+    let webhook_route = warp::path!("webhook")
         .and(warp::post())
         .and(warp::body::json())
         .and(with_clients(clients.clone()))
@@ -68,7 +67,13 @@ async fn main() {
 
     let cors = warp::cors()
         .allow_any_origin()
-        .allow_headers(vec!["Access-Control-Allow-Origin", "Origin", "Accept", "X-Requested-With", "Content-Type"])
+        .allow_headers(vec![
+            "Access-Control-Allow-Origin",
+            "Origin",
+            "Accept",
+            "X-Requested-With",
+            "Content-Type",
+        ])
         .allow_methods(&[Method::GET, Method::POST]);
 
     let routes = health_route
@@ -79,12 +84,9 @@ async fn main() {
         .or(publish)
         .with(&cors);
 
-    warp::serve(routes)
-        .run(([0, 0, 0, 0], 80))
-        .await;
+    warp::serve(routes).run(([0, 0, 0, 0], 80)).await;
 }
 
 fn with_clients(clients: Clients) -> impl Filter<Extract = (Clients,), Error = Infallible> + Clone {
     warp::any().map(move || clients.clone())
 }
-
