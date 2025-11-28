@@ -1,6 +1,7 @@
 use crate::{ws, Client, Clients, Result};
 use serde::{Deserialize, Serialize};
 use tiltify::Campaign;
+use tokio::sync::RwLock;
 use uuid::Uuid;
 use warp::{http::StatusCode, reply::json, ws::Message, Reply};
 
@@ -12,6 +13,7 @@ pub struct RegisterRequest {
 #[derive(Serialize, Debug)]
 pub struct RegisterResponse {
     url: String,
+    latest_data: Option<Campaign>,
 }
 
 #[derive(Deserialize, Debug)]
@@ -21,25 +23,27 @@ pub struct Event {
     message: String,
 }
 
+static CAMPAIGN_DATA: RwLock<Option<Campaign>> = RwLock::<Option<Campaign>>::const_new(None);
+
 pub async fn handle_webhook(body: Campaign, clients: Clients) -> Result<impl Reply> {
-    let updated_campaign = serde_json::to_string(&body).unwrap();
-
-    let amount_raised = body.data.amount_raised.clone().unwrap().value;
-
-    {
-        println!("New total: ${}", amount_raised);
-
-        // Push webhook data to clients
-        let _ = publish_handler(
-            Event {
-                topic: "donation".to_string(),
-                user_id: None,
-                message: updated_campaign.clone(),
-            },
-            clients,
-        )
-        .await;
+    let amount_raised = body.data.amount_raised.as_ref().map(|x| x.value.clone());
+    if let Some(amount) = amount_raised {
+        println!("New total: ${}", amount);
     }
+
+    let mut write_guard = CAMPAIGN_DATA.write().await;
+    write_guard.replace(body.clone());
+
+    publish_handler(
+        Event {
+            topic: "donation".to_string(),
+            user_id: None,
+            message: serde_json::to_string(&body).unwrap(),
+        },
+        clients,
+    )
+    .await
+    .expect("Publishing event data failed!");
 
     Ok::<_, warp::Rejection>(warp::reply())
 }
@@ -70,6 +74,7 @@ pub async fn register_handler(body: RegisterRequest, clients: Clients) -> Result
     register_client(uuid.clone(), user_id, clients).await;
     Ok(json(&RegisterResponse {
         url: format!("wss://thankmasoverlay.azurewebsites.net/ws/{}", uuid),
+        latest_data: CAMPAIGN_DATA.read().await.clone(),
     }))
 }
 

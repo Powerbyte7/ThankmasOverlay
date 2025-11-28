@@ -22,7 +22,7 @@ pub struct Client {
 
 #[tokio::main]
 async fn main() {
-    println!("Sup!");
+    println!("Let's make some charity money! :)");
 
     let clients: Clients = Arc::new(RwLock::new(HashMap::new()));
 
