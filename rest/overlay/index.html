@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <title>Hytale Thankmas Overlay</title>
+    <link rel="icon" href="overlay/icon.png" type="image/png">
+</head>
+<style>
+    body {
+        margin: 0;
+        padding: 0;
+    }
+
+    * {
+        box-sizing: border-box;
+    }
+
+    @font-face {
+        font-family: hyFont;
+        src: url('overlay/hyfont.otf');
+    }
+
+    .container {
+        background-color: rgb(44, 28, 13);
+        padding: 2vh;
+        height: 100vh;
+        width: 100%;
+        box-sizing: border-box;
+        border-radius: 20vh;
+    }
+
+    .dollars {
+        font-size: 35vh;
+        color: #ffd139;
+        text-align: center;
+        -webkit-text-stroke: 7vh;
+        -webkit-text-stroke-color: #4b2e03;
+        font-family: hyFont;
+        paint-order: stroke fill;
+        animation: breathe 9.34s ease infinite;
+
+    }
+
+    .status-text-container {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        overflow: hidden;
+    }
+
+    .status-bar {
+        position: absolute;
+        top: 10vh;
+        left: 10vh;
+        right: 10vh;
+        bottom: 10vh;
+        border-radius: 500px;
+    }
+
+    .status-bar-fill {
+        background-color: rgb(255, 174, 20);
+        position: absolute;
+        box-shadow: inset 0 0em 20vh rgba(0, 0, 0, 0.773);
+        border-radius: 500px;
+    }
+
+    .status-bar-highlight {
+        background: radial-gradient(circle, rgba(233, 138, 255, 0) 25%, rgb(255, 174, 20) 30%, rgba(70, 255, 230, 0) 32%, rgb(255, 185, 20) 34%, rgba(255, 210, 90, 0) 37%, rgba(210, 110, 255, 0) 43%, rgba(255, 230, 220, 0) 56%, rgba(255, 220, 110, 0) 62%, rgb(255, 183, 46) 64%, rgb(255, 227, 74) 66%, rgba(255, 60, 180, 0) 68%, rgba(130, 150, 255, 0) 73%);
+        background-size: 10000px 6000px;
+        animation: holo 30.34s linear infinite;
+
+        position: absolute;
+        mix-blend-mode: screen;
+        box-shadow: inset 0 0em 3em rgba(0, 0, 0, 0.773);
+    }
+
+    @keyframes holo {
+        100% {
+            background-position: 10000px 4500px;
+        }
+
+        0% {
+            background-position: -10000px 4500px;
+        }
+    }
+
+    @keyframes breathe {
+        100% {
+            transform: scale(1.02);
+        }
+
+        50% {
+            transform: scale(0.97);
+        }
+
+        0% {
+            transform: scale(1.02);
+        }
+    }
+</style>
+
+<body>
+    <div class="container">
+        <div class="status-bar status-bar-fill"></div>
+        <div class="status-bar status-bar-highlight"></div>
+        <div class="status-bar">
+            <div id="bar-cover"
+                style="background-color: rgb(44, 28, 13); width: 100%; height: 100%; margin-left: auto;  border-radius: 0; transition: width 2s, left 2s;">
+            </div>
+        </div>
+        <div class="status-bar" style="mix-blend-mode: multiply; background-color: rgba(18, 12, 6, 0.204);"></div>
+
+        <div class="status-bar status-text-container">
+            <p id="bar-text" class="dollars">Connecting...</p>
+        </div>
+
+    </div>
+    <script>
+
+        const barCover = document.getElementById("bar-cover");
+        const barText = document.getElementById("bar-text");
+
+        function setBarWidth(percentage) {
+            barCover.style.width = (100 - percentage) + "%";
+        }
+
+        function updateInfo(campaign) {
+            const current = Math.floor(campaign.data.amount_raised.value);
+            const goal = Math.floor(campaign.data.goal.value);
+            const text = `$${current} / $${goal}`;
+            barText.innerText = text;
+            setBarWidth(current / goal * 100);
+        }
+
+        async function websocket_init() {
+
+            // Register to use websocket.
+            const response = await (await fetch("register", {
+                method: "POST",
+                body: JSON.stringify({
+                    user_id: 1
+                }),
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            })).json();
+
+            if (response.latest_data != null) {
+                updateInfo(response.latest_data);
+            }
+
+            const socket = new WebSocket(response.url);
+
+            socket.onmessage = function (event) {
+                updateInfo(JSON.parse(event.data));
+            };
+
+            socket.onclose = function (event) {
+                console.log(event);
+                websocket_init();
+            };
+        }
+
+        websocket_init();
+
+    </script>
+</body>
+
+</html>

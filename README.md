@@ -1,5 +1,7 @@
 # Thankmas Donation Overlay
 
+![](/rest/overlay/icon.png)
+
 A Tiltify donation overlay service written in Rust for the anual Hytale Thankmas charity event. It uses Tiltify's Webhooks to get the latest campaign data and sends it to clients over Websocket.
 
 ## Project Structure
