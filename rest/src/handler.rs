@@ -73,7 +73,7 @@ pub async fn register_handler(body: RegisterRequest, clients: Clients) -> Result
 
     register_client(uuid.clone(), user_id, clients).await;
     Ok(json(&RegisterResponse {
-        url: format!("ws://localhost/ws/{}", uuid),
+        url: format!("../ws/{}", uuid),
         latest_data: CAMPAIGN_DATA.read().await.clone(),
     }))
 }

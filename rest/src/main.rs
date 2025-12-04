@@ -84,7 +84,7 @@ async fn main() {
         .or(publish)
         .with(&cors);
 
-    warp::serve(routes).run(([0, 0, 0, 0], 80)).await;
+    warp::serve(routes).run(([0, 0, 0, 0], 8080)).await;
 }
 
 fn with_clients(clients: Clients) -> impl Filter<Extract = (Clients,), Error = Infallible> + Clone {

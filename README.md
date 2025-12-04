@@ -11,8 +11,31 @@ A Tiltify donation overlay service written in Rust for the anual Hytale Thankmas
 - The Godot overlay can be found in overlay/
 - You can find test data for the API in test_data/
 
+## Building the project
+
+When running locally, you can use cargo
+
+```bash
+cd rest
+cargo run
+```
+
+For deployments I've set up a barbones Dockerfile. The resulting image is only 6mb. 
+
+```bash
+docker build .
+```
+
 ## Testing the API
 
+On Linux in Bash:
+
 ```shell
-curl --header "Content-Type: application/json" --request POST --data "@test_data.json" http://localhost:80/webhook
+curl --header "Content-Type: application/json" --request POST --data "test_data/campaign2.json" http://localhost:8080/webhook
+```
+
+On Windows in Powershell:
+
+```powershell
+curl -Uri 'http://localhost:8080/webhook' -Method Post -ContentType 'application/json' -InFile 'test_data/campaign2.json'
 ```

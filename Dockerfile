@@ -25,7 +25,7 @@ COPY ./tiltify/ ./tiltify
 
 WORKDIR /rest
 
-RUN cargo build --target x86_64-unknown-linux-musl --release
+RUN cargo build --target x86_64-unknown-linux-musl --release --features "openssl"
 
 ####################################################################################################
 ## Final image
