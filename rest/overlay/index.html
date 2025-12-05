@@ -98,6 +98,20 @@
             transform: scale(1.02);
         }
     }
+
+    @keyframes glow {
+        100% {
+            filter: blur(2em)
+        }
+
+        50% {
+            filter: blur(1em)
+        }
+
+        0% {
+            filter: blur(2em)
+        }
+    }
 </style>
 
 <body>
@@ -110,6 +124,11 @@
             </div>
         </div>
         <div class="status-bar" style="mix-blend-mode: multiply; background-color: rgba(18, 12, 6, 0.204);"></div>
+        <div class="status-bar" style="display: flex">
+            <div id="bar-glow" style="width: 0%; height: 100%; border-radius: 0; transition: width 2s, left 2s;"></div>
+            <div style="width: 1%; height: 100%; border-radius: 0; transform: translateX(-4vh); transition: width 2s, left 2s; background-color: rgb(250, 212, 60); animation: glow 4.34s ease infinite; mix-blend-mode: hard-light;"></div>
+            <!-- <div style="width: 1%; height: 100%; border-radius: 0; transform: translateX(-6vh); transition: width 2s, left 2s; background-color: rgb(255, 255, 255); mix-blend-mode: hard-light; opacity: 1; filter:blur(1em)"></div> -->
+        </div>
 
         <div class="status-bar status-text-container">
             <p id="bar-text" class="dollars">Connecting...</p>
@@ -120,17 +139,29 @@
 
         const barCover = document.getElementById("bar-cover");
         const barText = document.getElementById("bar-text");
+        const barGlow = document.getElementById("bar-glow");
 
         function setBarWidth(percentage) {
             barCover.style.width = (100 - percentage) + "%";
+            barGlow.style.width = (percentage) + "%";
         }
 
+        // State
+        let raisedCurrent = 0;
+        let goalCurrent = 0;
+
+        // Displayed
+        let raisedDisplay = 0;
+        let goalDisplay = 0;
+
         function updateInfo(campaign) {
-            const current = Math.floor(campaign.data.amount_raised.value);
-            const goal = Math.floor(campaign.data.goal.value);
-            const text = `$${current} / $${goal}`;
-            barText.innerText = text;
-            setBarWidth(current / goal * 100);
+            raisedCurrent = Math.floor(campaign.data.amount_raised.value);
+            goalCurrent = Math.floor(campaign.data.goal.value);
+            setBarWidth(raisedCurrent / goalCurrent * 100);
+        }
+
+        function lerp(a, b, t) {
+            return a + (b - a) * t;
         }
 
         async function websocket_init() {
@@ -163,6 +194,18 @@
         }
 
         websocket_init();
+
+        async function updateCount() {
+            while (true) {
+                raisedDisplay = Math.floor(lerp(raisedDisplay, raisedCurrent, 0.12));
+                goalDisplay = Math.floor(lerp(goalDisplay, goalCurrent, 0.12));
+                const text = `$${raisedDisplay} / $${goalDisplay}`;
+                barText.innerText = text;
+                await new Promise(r => setTimeout(r, 30));
+            }
+        }
+
+        updateCount();
 
     </script>
 </body>
