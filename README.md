@@ -8,7 +8,7 @@ A Tiltify donation overlay service written in Rust for the anual Hytale Thankmas
 
 - The backend can be found in rest/, it handles Tiltify's webhooks and websocket communication
 - Types from the Tiltify API can be found in tiltify/src/lib.rs
-- The Godot overlay can be found in overlay/
+- The overlays can be found in overlay/
 - You can find test data for the API in test_data/
 
 ## Building the project
@@ -20,7 +20,7 @@ cd rest
 cargo run
 ```
 
-For deployments I've set up a barbones Dockerfile. The resulting image is only 6mb. 
+For deployments I've set up a barbones Dockerfile. The resulting image is really small because it uses `FROM scratch`. 
 
 ```bash
 docker build .
