@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <title>Hytale Thankmas Mosshorn</title>
+    <link rel="icon" href="/overlay/icon.png" type="image/png">
+</head>
+<style>
+body { background-color: rgba(0, 0, 0, 0); margin: 0px auto; overflow: hidden; }
+
+.video-player {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+</style>
+
+<body>
+    <video id="fifteenDollars" class="video-player" width="1920" height="1080" disablepictureinpicture preload="auto">
+        <source src="popup/fifteenDollars.webm">
+    </video>
+    <video id="thirtyDollars" class="video-player" width="1920" height="1080" disablepictureinpicture preload="auto">
+        <source src="popup/thirtyDollars.webm">
+    </video>
+    <video id="hundrerdDollars" class="video-player" width="1920" height="1080" disablepictureinpicture preload="auto">
+        <source src="popup/hundrerdDollars.webm">
+    </video>
+    <video id="twohundrerdDollars" class="video-player" width="1920" height="1080" disablepictureinpicture preload="auto">
+        <source src="popup/twohundrerdDollars.webm">
+    </video>
+
+    <script>
+        // When new donations come in, they get added here so we can play them after a different animation
+        const donationQueue = [
+            {
+                name: "John",
+                amount: 15
+            },
+            {
+                name: "Jeff",
+                amount: 30
+            },
+            {
+                name: "Jeb",
+                amount: 100
+            },
+            {
+                name: "Jelly",
+                amount: 200
+            },
+        ];
+
+        
+        // Keep amounts in descending order!!!!
+        const donationPopups = [
+            {
+                triggerAmount: 200,
+                player: document.getElementById("twohundrerdDollars")
+            },
+            {
+                triggerAmount: 100,
+                player: document.getElementById("hundrerdDollars")
+            },
+            {
+                triggerAmount: 30,
+                player: document.getElementById("thirtyDollars")
+            },
+            {
+                triggerAmount: 15,
+                player: document.getElementById("fifteenDollars")
+            },
+        ];
+
+        let popupActive = false;
+
+        donationPopups.forEach(element => {
+            element.player.addEventListener('ended', function() {
+                console.log("Player done!");
+                popupActive = false;
+            });
+        });
+
+        async function websocket_init() {
+
+            // Register to use websocket.
+            const response = await (await fetch("/register", {
+                method: "POST",
+                body: JSON.stringify({
+                    user_id: 1
+                }),
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            })).json();
+
+            const socket = new WebSocket(response.url);
+
+            socket.onmessage = function (event) {
+                updateInfo(JSON.parse(event.data));
+            };
+
+            socket.onclose = function (event) {
+                console.log(event);
+                websocket_init();
+            };
+        }
+
+        websocket_init();
+
+        async function react_on_new() {
+            while (true) {
+                if (!popupActive && donationQueue.length > 0) {
+                    const donation = donationQueue.shift();
+                    const popup = donationPopups.find((popup) => donation.amount >= popup.triggerAmount );
+                    if (popup) {
+                        popupActive = true;
+                        try {
+                            console.log("Playing for ", popup.triggerAmount);
+                            console.log("Left in queue", donationQueue);
+                            popup.player.play();
+                        } catch {
+                            console.log("Browser is being annoying :(");
+                        }
+                    }
+                }
+
+                await new Promise(r => setTimeout(r, 100));
+            }
+        }
+
+        react_on_new();
+
+    </script>
+</body>
+
+</html>
