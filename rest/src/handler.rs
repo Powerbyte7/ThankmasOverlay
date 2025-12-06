@@ -1,6 +1,6 @@
 use crate::{ws, Client, Clients, Result};
 use serde::{Deserialize, Serialize};
-use tiltify::Campaign;
+use tiltify::{Campaign, Donation, TiltifyReponse};
 use tokio::sync::RwLock;
 use uuid::Uuid;
 use warp::{http::StatusCode, reply::json, ws::Message, Reply};
@@ -8,12 +8,13 @@ use warp::{http::StatusCode, reply::json, ws::Message, Reply};
 #[derive(Deserialize, Debug)]
 pub struct RegisterRequest {
     user_id: usize,
+    topics: Vec<String>
 }
 
 #[derive(Serialize, Debug)]
-pub struct RegisterResponse {
+pub struct RegisterResponse<'a> {
     url: String,
-    latest_data: Option<Campaign>,
+    latest_data: Option<&'a Campaign>,
 }
 
 #[derive(Deserialize, Debug)]
@@ -23,27 +24,48 @@ pub struct Event {
     message: String,
 }
 
+// Keep track of the last known campaign state, useful when we need to reload the overlay
 static CAMPAIGN_DATA: RwLock<Option<Campaign>> = RwLock::<Option<Campaign>>::const_new(None);
 
-pub async fn handle_webhook(body: Campaign, clients: Clients) -> Result<impl Reply> {
-    let amount_raised = body.data.amount_raised.as_ref().map(|x| x.value.clone());
-    if let Some(amount) = amount_raised {
-        println!("New total: ${}", amount);
+pub async fn handle_campaign(body: TiltifyReponse<Campaign>, clients: Clients) -> Result<impl Reply> {
+    let campaign = body.data;
+    println!("New total: ${}", campaign.amount_raised.value);
+
+    let message_json = serde_json::to_string(&campaign).unwrap();
+    
+    {
+        let mut write_guard = CAMPAIGN_DATA.write().await;
+        write_guard.replace(campaign);
     }
 
-    let mut write_guard = CAMPAIGN_DATA.write().await;
-    write_guard.replace(body.clone());
+    publish_handler(
+        Event {
+            topic: "campaign".to_string(),
+            user_id: None,
+            message: message_json,
+        },
+        clients,
+    )
+    .await
+    .expect("Publishing campaign data failed!");
+
+    Ok::<_, warp::Rejection>(warp::reply())
+}
+
+pub async fn handle_donation(body: TiltifyReponse<Donation>, clients: Clients) -> Result<impl Reply> {
+    let donation = body.data;
+    println!("Got donation: ${}", donation.amount.value);
 
     publish_handler(
         Event {
             topic: "donation".to_string(),
             user_id: None,
-            message: serde_json::to_string(&body).unwrap(),
+            message: serde_json::to_string(&donation).unwrap(),
         },
         clients,
     )
     .await
-    .expect("Publishing event data failed!");
+    .expect("Publishing donation data failed!");
 
     Ok::<_, warp::Rejection>(warp::reply())
 }
@@ -71,19 +93,20 @@ pub async fn register_handler(body: RegisterRequest, clients: Clients) -> Result
     let user_id = body.user_id;
     let uuid = Uuid::new_v4().as_simple().to_string();
 
-    register_client(uuid.clone(), user_id, clients).await;
+    register_client(uuid.clone(), user_id, clients, body.topics).await;
+
     Ok(json(&RegisterResponse {
         url: format!("../ws/{}", uuid),
-        latest_data: CAMPAIGN_DATA.read().await.clone(),
+        latest_data: CAMPAIGN_DATA.read().await.as_ref()
     }))
 }
 
-async fn register_client(id: String, user_id: usize, clients: Clients) {
+async fn register_client(id: String, user_id: usize, clients: Clients, topics: Vec<String>) {
     clients.write().await.insert(
         id,
         Client {
             user_id,
-            topics: vec![String::from("donation")],
+            topics: topics,
             sender: None,
         },
     );

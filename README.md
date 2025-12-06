@@ -31,11 +31,13 @@ docker build .
 On Linux in Bash:
 
 ```shell
-curl --header "Content-Type: application/json" --request POST --data "test_data/campaign2.json" http://localhost:8080/webhook
+curl --header "Content-Type: application/json" --request POST --data "test_data/campaign2.json" http://localhost:8080/campaign
+curl --header "Content-Type: application/json" --request POST --data "test_data/donation.json" http://localhost:8080/donation
 ```
 
 On Windows in Powershell:
 
 ```powershell
-curl -Uri 'http://localhost:8080/webhook' -Method Post -ContentType 'application/json' -InFile 'test_data/campaign2.json'
+curl -Uri 'http://localhost:8080/campaign' -Method Post -ContentType 'application/json' -InFile 'test_data/campaign2.json'
+curl -Uri 'http://localhost:8080/donation' -Method Post -ContentType 'application/json' -InFile 'test_data/donation.json'
 ```

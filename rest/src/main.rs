@@ -36,11 +36,17 @@ async fn main() {
 
     let health_route = warp::path!("health").and_then(handler::health_handler);
 
-    let webhook_route = warp::path!("webhook")
+    let campaign_route = warp::path!("campaign")
         .and(warp::post())
         .and(warp::body::json())
         .and(with_clients(clients.clone()))
-        .and_then(handler::handle_webhook);
+        .and_then(handler::handle_campaign);
+
+    let donation_route = warp::path!("donation")
+        .and(warp::post())
+        .and(warp::body::json())
+        .and(with_clients(clients.clone()))
+        .and_then(handler::handle_donation);
 
     let register = warp::path("register");
     let register_routes = register
@@ -78,7 +84,8 @@ async fn main() {
 
     let routes = health_route
         .or(static_assets)
-        .or(webhook_route)
+        .or(campaign_route)
+        .or(donation_route)
         .or(register_routes)
         .or(ws_route)
         .or(publish)

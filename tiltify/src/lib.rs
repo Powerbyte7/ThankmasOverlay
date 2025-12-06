@@ -41,8 +41,8 @@ pub struct Social {
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
-pub struct Data {
-    pub amount_raised: Option<Amount>,
+pub struct Campaign {
+    pub amount_raised: Amount,
     pub avatar: Option<Avatar>,
     pub currency_code: Option<String>,
     pub description: Option<String>,
@@ -81,9 +81,18 @@ pub struct Team {
     pub url: String,
 }
 
+#[derive(Serialize, Deserialize, Debug, Clone)]
+pub struct Donation {
+    pub id: String,
+    pub amount: Amount,
+    pub donor_name: String,
+    pub donor_comment: Option<String>,
+}
+
+// Used for correctly parsing JSON
 #[derive(Debug, Serialize, Deserialize, Clone)]
-pub struct Campaign {
-    pub data: Data,
+pub struct TiltifyReponse<T> {
+    pub data: T
 }
 
 #[cfg(test)]
@@ -174,7 +183,7 @@ mod tests {
         }
         "#;
 
-        let campaign: Campaign = serde_json::from_str(json_data).unwrap();
+        let campaign: TiltifyReponse<Campaign> = serde_json::from_str(json_data).unwrap();
         println!("{:?}", campaign);
 
         let serialized = serde_json::to_string(&campaign).unwrap();

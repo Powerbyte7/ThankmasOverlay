@@ -152,8 +152,8 @@
         let goalDisplay = 0;
 
         function updateInfo(campaign) {
-            raisedCurrent = Math.floor(campaign.data.amount_raised.value);
-            goalCurrent = Math.floor(campaign.data.goal.value);
+            raisedCurrent = Math.floor(campaign.amount_raised.value);
+            goalCurrent = Math.floor(campaign.goal.value);
             setBarWidth(raisedCurrent / goalCurrent * 100);
         }
 
@@ -167,7 +167,8 @@
             const response = await (await fetch("/register", {
                 method: "POST",
                 body: JSON.stringify({
-                    user_id: 1
+                    user_id: 1,
+                    topics: ["campaign"]
                 }),
                 headers: {
                     'Content-Type': 'application/json'
@@ -180,8 +181,9 @@
 
             const socket = new WebSocket(response.url);
 
-            socket.onmessage = function (event) {
-                updateInfo(JSON.parse(event.data));
+            socket.onmessage = function (message) {
+                const campaign = JSON.parse(message.data);
+                updateInfo(campaign);
             };
 
             socket.onclose = function (event) {

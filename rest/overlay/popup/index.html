@@ -13,43 +13,50 @@ body { background-color: rgba(0, 0, 0, 0); margin: 0px auto; overflow: hidden; }
     position: absolute;
     width: 100%;
     height: 100%;
-    object-fit: cover;
 }
 </style>
 
 <body>
-    <video id="fifteenDollars" class="video-player" width="1920" height="1080" disablepictureinpicture preload="auto">
-        <source src="popup/fifteenDollars.webm">
-    </video>
-    <video id="thirtyDollars" class="video-player" width="1920" height="1080" disablepictureinpicture preload="auto">
+    <video id="fifteenDollars" class="video-player" style="visibility: hidden;" width="1920" height="1080" disablepictureinpicture preload="auto">
         <source src="popup/thirtyDollars.webm">
     </video>
-    <video id="hundrerdDollars" class="video-player" width="1920" height="1080" disablepictureinpicture preload="auto">
-        <source src="popup/hundrerdDollars.webm">
+    <video id="thirtyDollars" class="video-player" style="visibility: hidden;" width="1920" height="1080" disablepictureinpicture preload="auto">
+        <source src="popup/thirtyDollars.webm">
     </video>
-    <video id="twohundrerdDollars" class="video-player" width="1920" height="1080" disablepictureinpicture preload="auto">
-        <source src="popup/twohundrerdDollars.webm">
+    <video id="hundrerdDollars" class="video-player" style="visibility: hidden;" width="1920" height="1080" disablepictureinpicture preload="auto">
+        <source src="popup/thirtyDollars.webm">
+    </video>
+    <video id="twohundrerdDollars" class="video-player" style="visibility: hidden;" width="1920" height="1080" disablepictureinpicture preload="auto">
+        <source src="popup/thirtyDollars.webm">
     </video>
 
     <script>
         // When new donations come in, they get added here so we can play them after a different animation
         const donationQueue = [
-            {
-                name: "John",
-                amount: 15
-            },
-            {
-                name: "Jeff",
-                amount: 30
-            },
-            {
-                name: "Jeb",
-                amount: 100
-            },
-            {
-                name: "Jelly",
-                amount: 200
-            },
+            // {
+            //     donor_name: "John",
+            //     amount: {
+            //         value: 15
+            //     }
+            // },
+            // {
+            //     donor_name: "Jeff",
+            //     amount: {
+            //         value: 30
+            //     }
+            // },
+            // {
+            //     donor_name: "Jeb",
+            //     amount: {
+            //         value: 100
+            //     }
+            // },
+            // {
+            //     donor_name: "Jelly",
+            //     amount: {
+            //         value: 200
+            //     }
+            // },
         ];
 
         
@@ -79,6 +86,7 @@ body { background-color: rgba(0, 0, 0, 0); margin: 0px auto; overflow: hidden; }
             element.player.addEventListener('ended', function() {
                 console.log("Player done!");
                 popupActive = false;
+                donationPopups.forEach(x => { x.player.style.visibility = "hidden"; });
             });
         });
 
@@ -88,7 +96,8 @@ body { background-color: rgba(0, 0, 0, 0); margin: 0px auto; overflow: hidden; }
             const response = await (await fetch("/register", {
                 method: "POST",
                 body: JSON.stringify({
-                    user_id: 1
+                    user_id: 1,
+                    topics: ["donation"]
                 }),
                 headers: {
                     'Content-Type': 'application/json'
@@ -97,8 +106,9 @@ body { background-color: rgba(0, 0, 0, 0); margin: 0px auto; overflow: hidden; }
 
             const socket = new WebSocket(response.url);
 
-            socket.onmessage = function (event) {
-                updateInfo(JSON.parse(event.data));
+            socket.onmessage = function (message) {
+                const donation = JSON.parse(message.data);
+                donationQueue.push(donation);
             };
 
             socket.onclose = function (event) {
@@ -113,15 +123,18 @@ body { background-color: rgba(0, 0, 0, 0); margin: 0px auto; overflow: hidden; }
             while (true) {
                 if (!popupActive && donationQueue.length > 0) {
                     const donation = donationQueue.shift();
-                    const popup = donationPopups.find((popup) => donation.amount >= popup.triggerAmount );
+                    const popup = donationPopups.find((popup) => Math.floor(donation.amount.value) >= popup.triggerAmount );
                     if (popup) {
                         popupActive = true;
+                        console.log("Playing for ", donation.donor_name);
+                        console.log("Using player ", popup.player);
                         try {
-                            console.log("Playing for ", popup.triggerAmount);
-                            console.log("Left in queue", donationQueue);
+                            console.log(`${donationQueue.length} donations in queue`);
+                            popup.player.style.visibility = null; 
                             popup.player.play();
                         } catch {
                             console.log("Browser is being annoying :(");
+                            popupActive = false;
                         }
                     }
                 }
