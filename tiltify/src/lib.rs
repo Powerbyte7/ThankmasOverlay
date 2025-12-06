@@ -100,95 +100,23 @@ mod tests {
     use super::*;
 
     #[test]
-    fn main() {
-        let json_data = r#"
-        {
-            "data": {
-                "amount_raised": {
-                    "currency": "USD",
-                    "value": "182.32"
-                },
-                "avatar": {
-                    "alt": "Short image description used as alternative text.",
-                    "height": 200,
-                    "src": "https://tiltify.com/images/example.jpg",
-                    "width": 200
-                },
-                "currency_code": "USD",
-                "description": "Let's fundraise together",
-                "donate_url": "https://donate.tiltify.com/+team-slug/our-awesome-team-campaign",
-                "goal": {
-                    "currency": "USD",
-                    "value": "182.32"
-                },
-                "has_schedule": false,
-                "id": "e0da6810-7eeb-4585-9a96-261e73b300c8",
-                "inserted_at": "2023-09-19T17:16:53.698545Z",
-                "legacy_id": 907663706,
-                "livestream": {
-                    "channel": "tiltify",
-                    "type": "twitch"
-                },
-                "name": "Our Awesome Team Campaign",
-                "original_goal": {
-                    "currency": "USD",
-                    "value": "182.32"
-                },
-                "published_at": "2023-09-19T17:16:53.698579Z",
-                "retired_at": null,
-                "slug": "our-awesome-team-campaign",
-                "status": "published",
-                "supportable": "none",
-                "supporting_amount_raised": {
-                    "currency": "USD",
-                    "value": "182.32"
-                },
-                "team": {
-                    "avatar": {
-                        "alt": "Short image description used as alternative text.",
-                        "height": 200,
-                        "src": "https://tiltify.com/images/example.jpg",
-                        "width": 200
-                    },
-                    "description": "Awesome group of friends fundraising for charity together.",
-                    "id": "2682116f-8f79-4d43-980c-b285ec07c615",
-                    "legacy_id": 77805171,
-                    "name": "Awesome Team",
-                    "slug": "awesome-team",
-                    "social": {
-                        "discord": "https://discord.gg/tiltify",
-                        "facebook": "tiltify",
-                        "instagram": "tiltify",
-                        "snapchat": "tiltify",
-                        "tiktok": "tilitfy",
-                        "twitch": "tilitfy",
-                        "twitter": "tiltify",
-                        "website": "https://tiltify.com",
-                        "youtube": "UCWcPgWbuWuJX5rHWm6Kb4Vw"
-                    },
-                    "total_amount_raised": {
-                        "currency": "USD",
-                        "value": "182.32"
-                    },
-                    "url": "https://tiltify.com/+awesome-team"
-                },
-                "team_id": "de239ed5-a4ff-4766-bbcf-d6d1f678cd89",
-                "total_amount_raised": {
-                    "currency": "USD",
-                    "value": "182.32"
-                },
-                "updated_at": "2023-09-19T17:16:53.698590Z",
-                "url": "https://tiltify.com/+team-slug/our-awesome-team-campaign"
-            }
-        }
-        "#;
+    fn campaign_serialization() {
+        let json_data_a = include_str!("../testdata/campaign1.json");
+        let json_data_b = include_str!("../testdata/campaign2.json");
 
-        let campaign: TiltifyReponse<Campaign> = serde_json::from_str(json_data).unwrap();
-        println!("{:?}", campaign);
+        let campaign_a: TiltifyReponse<Campaign> = serde_json::from_str(json_data_a).unwrap();
+        let campaign_b: TiltifyReponse<Campaign> = serde_json::from_str(json_data_b).unwrap();
 
-        let serialized = serde_json::to_string(&campaign).unwrap();
-        println!("{}", serialized);
+        serde_json::to_string(&campaign_a).unwrap();
+        serde_json::to_string(&campaign_b).unwrap();
+    }
 
-        assert_eq!(4, 4);
+    #[test]
+    fn donation_serialization() {
+        let json_data = include_str!("../testdata/donation.json");
+
+        let donation: TiltifyReponse<Donation> = serde_json::from_str(json_data).unwrap();
+
+        serde_json::to_string(&donation).unwrap();
     }
 }
