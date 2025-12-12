@@ -7,7 +7,6 @@ use warp::{http::StatusCode, reply::json, ws::Message, Reply};
 
 #[derive(Deserialize, Debug)]
 pub struct RegisterRequest {
-    user_id: usize,
     topics: Vec<String>
 }
 
@@ -20,7 +19,6 @@ pub struct RegisterResponse<'a> {
 #[derive(Deserialize, Debug)]
 pub struct Event {
     topic: String,
-    user_id: Option<usize>,
     message: String,
 }
 
@@ -41,7 +39,6 @@ pub async fn handle_campaign(body: TiltifyReponse<Campaign>, clients: Clients) -
     publish_handler(
         Event {
             topic: "campaign".to_string(),
-            user_id: None,
             message: message_json,
         },
         clients,
@@ -59,7 +56,6 @@ pub async fn handle_donation(body: TiltifyReponse<Donation>, clients: Clients) -
     publish_handler(
         Event {
             topic: "donation".to_string(),
-            user_id: None,
             message: serde_json::to_string(&donation).unwrap(),
         },
         clients,
@@ -75,10 +71,6 @@ pub async fn publish_handler(body: Event, clients: Clients) -> Result<impl Reply
         .read()
         .await
         .iter()
-        .filter(|(_, client)| match body.user_id {
-            Some(v) => client.user_id == v,
-            None => true,
-        })
         .filter(|(_, client)| client.topics.contains(&body.topic))
         .for_each(|(_, client)| {
             if let Some(sender) = &client.sender {
@@ -90,10 +82,9 @@ pub async fn publish_handler(body: Event, clients: Clients) -> Result<impl Reply
 }
 
 pub async fn register_handler(body: RegisterRequest, clients: Clients) -> Result<impl Reply> {
-    let user_id = body.user_id;
     let uuid = Uuid::new_v4().as_simple().to_string();
 
-    register_client(uuid.clone(), user_id, clients, body.topics).await;
+    register_client(uuid.clone(), clients, body.topics).await;
 
     Ok(json(&RegisterResponse {
         url: format!("../ws/{}", uuid),
@@ -101,11 +92,10 @@ pub async fn register_handler(body: RegisterRequest, clients: Clients) -> Result
     }))
 }
 
-async fn register_client(id: String, user_id: usize, clients: Clients, topics: Vec<String>) {
+async fn register_client(id: String, clients: Clients, topics: Vec<String>) {
     clients.write().await.insert(
         id,
         Client {
-            user_id,
             topics: topics,
             sender: None,
         },

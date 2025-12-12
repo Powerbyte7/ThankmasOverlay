@@ -30,7 +30,7 @@ pub async fn client_connection(ws: WebSocket, id: String, clients: Clients, mut 
     while let Some(result) = client_ws_rcv.next().await {
         let msg = match result {
             Ok(msg) => msg,
-            Err(e) => {
+            Err(e) => { 
                 eprintln!("error receiving ws message for id: {}): {}", id.clone(), e);
                 break;
             }
