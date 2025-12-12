@@ -154,9 +154,12 @@
         function updateInfo(campaign) {
             raisedCurrent = Math.floor(campaign.amount_raised.value);
             goalCurrent = Math.floor(campaign.goal.value);
-            setBarWidth(raisedCurrent / goalCurrent * 100);
+            setBarWidth(clamp(raisedCurrent / goalCurrent * 100, 0, 100));
         }
 
+        function clamp(value, min, max) {
+            return Math.min(Math.max(value, min), max);
+        }
         function lerp(a, b, t) {
             return a + (b - a) * t;
         }
