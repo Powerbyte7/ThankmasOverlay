@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <title>Hytale Thankmas Mosshorn</title>
+    <link rel="icon" href="/overlay/icon.png" type="image/png">
+</head>
+<style>
+body { background-color: rgba(0, 0, 0, 0); margin: 0px auto; overflow: hidden; }
+
+.video-player {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+}
+</style>
+
+<body>
+    <video id="fifteenDollars" class="video-player" style="visibility: hidden;" width="1920" height="1080" disablepictureinpicture preload="auto">
+        <source src="https://raw.githubusercontent.com/hugovdev/thankmas-popup/refs/heads/master/fifteenDollars.webm">
+    </video>
+    <video id="thirtyDollars" class="video-player" style="visibility: hidden;" width="1920" height="1080" disablepictureinpicture preload="auto">
+        <source src="https://raw.githubusercontent.com/hugovdev/thankmas-popup/refs/heads/master/thirtyDollars.webm">
+    </video>
+    <video id="hundrerdDollars" class="video-player" style="visibility: hidden;" width="1920" height="1080" disablepictureinpicture preload="auto">
+        <source src="https://raw.githubusercontent.com/hugovdev/thankmas-popup/refs/heads/master/hundrerdDollars.webm">
+    </video>
+    <video id="twohundrerdDollars" class="video-player" style="visibility: hidden;" width="1920" height="1080" disablepictureinpicture preload="auto">
+        <source src="https://raw.githubusercontent.com/hugovdev/thankmas-popup/refs/heads/master/twohundrerdDollars.webm">
+    </video>
+
+    <script>
+        // When new donations come in, they get added here so we can play them one at a time
+        const donationQueue = [
+            // {
+            //     donor_name: "John",
+            //     amount: {
+            //         value: 15
+            //     }
+            // },
+            // {
+            //     donor_name: "Jeff",
+            //     amount: {
+            //         value: 30
+            //     }
+            // },
+            // {
+            //     donor_name: "Jeb",
+            //     amount: {
+            //         value: 100
+            //     }
+            // },
+            // {
+            //     donor_name: "Jelly",
+            //     amount: {
+            //         value: 200
+            //     }
+            // },
+        ];
+
+        
+        // Keep amounts in descending order!!!!
+        const donationPopups = [
+            {
+                triggerAmount: 200,
+                player: document.getElementById("twohundrerdDollars")
+            },
+            {
+                triggerAmount: 100,
+                player: document.getElementById("hundrerdDollars")
+            },
+            {
+                triggerAmount: 30,
+                player: document.getElementById("thirtyDollars")
+            },
+            {
+                triggerAmount: 15,
+                player: document.getElementById("fifteenDollars")
+            },
+        ];
+
+        let popupActive = false;
+
+        donationPopups.forEach(element => {
+            element.player.addEventListener('ended', function() {
+                console.log("Player done!");
+                popupActive = false;
+                donationPopups.forEach(x => { x.player.style.visibility = "hidden"; });
+            });
+        });
+
+        async function websocket_init() {
+
+            // Register to use websocket.
+            const response = await (await fetch("/register", {
+                method: "POST",
+                body: JSON.stringify({
+                    topics: ["donation"]
+                }),
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            })).json();
+
+            const socket = new WebSocket(response.url);
+
+            socket.onmessage = function (message) {
+                const donation = JSON.parse(message.data);
+                donationQueue.push(donation);
+            };
+
+            socket.onclose = function (event) {
+                console.log(event);
+                websocket_init();
+            };
+        }
+
+        websocket_init();
+
+        async function react_on_new() {
+            while (true) {
+                if (!popupActive && donationQueue.length > 0) {
+                    const donation = donationQueue.shift();
+                    const popup = donationPopups.find((popup) => Math.floor(donation.amount.value) >= popup.triggerAmount );
+                    if (popup) {
+                        popupActive = true;
+                        console.log("Playing for ", donation.donor_name);
+                        console.log("Using player ", popup.player);
+                        try {
+                            console.log(`${donationQueue.length} donations in queue`);
+                            popup.player.style.visibility = null; 
+                            popup.player.play();
+                        } catch {
+                            console.log("Browser is being annoying :(");
+                            popupActive = false;
+                        }
+                    }
+                }
+
+                await new Promise(r => setTimeout(r, 100));
+            }
+        }
+
+        react_on_new();
+
+    </script>
+</body>
+
+</html>
